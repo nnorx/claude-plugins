@@ -75,10 +75,22 @@ memories, which should be concrete enough to verify.
 **Sound.** Verified and still true. Say so briefly. A clean bill of health on
 the rest of the directory is useful output.
 
-## 4. Check the index
+## 4. Check the recall surface
 
-`MEMORY.md` loads every session, so an error there costs more than an error in
-any single memory file.
+A memory has two layers. The body is read only once the memory is pulled in.
+The `description:` and the `MEMORY.md` index line are what get matched and
+loaded every session. They drift independently, and drift here is the more
+expensive kind: a body can be entirely correct while its description keeps
+advertising a problem that was solved weeks ago.
+
+For each memory, check the description against its own body:
+
+- Does it still summarize what the body now says?
+- Does it describe as planned or pending something the body records as done?
+- Would it match the situations where this memory is actually useful?
+
+Then check the index. `MEMORY.md` loads every session, so an error there costs
+more than an error in any single memory file.
 
 - Every `.md` file except `MEMORY.md` has exactly one index line
 - No index line points at a missing file
@@ -109,6 +121,9 @@ When updating rather than deleting:
 
 - Delete on age alone. An old memory that is still true is a good memory.
 - Prune something for being obvious. It was written down because it was not.
+- Assume a pending item went stale because it is old. Verify whether the work
+  actually happened. A memory recording a counter-argument that the code does
+  not is doing real work, and reads exactly like a stale TODO.
 - Rewrite a `feedback` rule because you disagree with it.
 - Trim a `**Why:**` for concision.
 - Touch another project scope without being asked.
