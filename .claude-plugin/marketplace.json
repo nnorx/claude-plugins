@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "nnorx",
+  "description": "Nick's personal Claude Code skills, agents, and commands",
+  "owner": {
+    "name": "nnorx"
+  },
+  "plugins": [
+    {
+      "name": "core",
+      "source": "./plugins/core",
+      "description": "Personal skills, agents, and slash commands used across all of Nick's machines"
+    }
+  ]
+}
