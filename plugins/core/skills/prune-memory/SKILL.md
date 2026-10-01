@@ -1,6 +1,7 @@
 ---
 name: prune-memory
 description: Audit a Claude Code memory directory for facts that have gone stale, been completed, or become redundant, verifying every claim against the filesystem, git, and gh before proposing changes. Use when asked to prune, audit, clean up, or review memories, to check whether stored memories are still accurate, or after a recalled memory turns out to be wrong.
+argument-hint: '[scope]'
 ---
 
 # Prune memory
@@ -25,7 +26,9 @@ scopes exist and are not in context:
 ls -d ~/.claude/projects/*/memory/
 ```
 
-Confirm before auditing a scope other than the active one.
+If an argument names a scope (a directory under `~/.claude/projects/`), audit
+that one; naming it is the confirmation. Otherwise confirm before auditing a
+scope other than the active one.
 
 ## 2. Verify every concrete claim
 

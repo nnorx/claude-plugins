@@ -1,6 +1,7 @@
 ---
 name: rebase
 description: Rebase a branch onto its default branch, resolving trivial and mechanical conflicts but stopping to ask on semantic ones, with the pre-rebase SHA recorded so the operation is always reversible. Use when asked to rebase, to sync a branch onto main or master, to catch a branch up before a PR, or when a branch has fallen behind and conflicts are expected.
+argument-hint: '[target branch]'
 ---
 
 # Rebase
@@ -31,7 +32,8 @@ Do all of this before touching anything:
 
 ## 2. Find the target
 
-Do not assume `main`. Use `gh repo view --json defaultBranchRef -q
+If a target branch was given as an argument, use it. Otherwise do not assume
+`main`. Use `gh repo view --json defaultBranchRef -q
 .defaultBranchRef.name`, or `git symbolic-ref refs/remotes/origin/HEAD`.
 Repos that predate the rename still use `master`, and getting this wrong
 produces a rebase onto a branch that has not moved in years.

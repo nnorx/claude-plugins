@@ -1,6 +1,7 @@
 ---
 name: lint-review
 description: Audit a repo's linter configuration for gaps, dead suppressions, and rules that have rotted against the installed tool version, measuring each proposal by actually running the linter rather than by taste. Use when asked to review lint config, find rules worth enabling, clean up ignores or disables, check whether linting is actually enforced, or decide whether the current changes call for a config change.
+argument-hint: '[path or "changes"]'
 ---
 
 # Lint review
@@ -13,6 +14,10 @@ because a linter that is not checking something simply says nothing.
 Every claim in this audit is measured by running the linter. A rule is worth
 enabling because it produces zero violations today, not because it is a good
 idea in general.
+
+With no argument, audit the whole repo. With `changes`, go straight to section
+6 and ask whether the current diff calls for a config change. With a path,
+scope every measurement below to that directory.
 
 ## 1. Find what actually runs
 
