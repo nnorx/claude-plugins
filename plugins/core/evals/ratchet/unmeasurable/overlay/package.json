@@ -1,0 +1,9 @@
+{
+  "name": "shop",
+  "private": true,
+  "workspaces": ["packages/*"],
+  "devDependencies": {
+    "eslint": "^10.0.0",
+    "typescript-eslint": "^8.40.0"
+  }
+}

@@ -52,13 +52,19 @@ commit() {
 #   src/pages/Account.tsx    1         0
 #   src/pages/Checkout.tsx   2         deleted
 #
-# $1 is extra YAML appended to the legacy-API CI step, for the case that
-# makes the check non-blocking.
+# $1 is extra YAML appended after the last CI step, the legacy-API check:
+# indented as a key it modifies that step (continue-on-error), indented as a
+# list item it adds a step of its own. $2 is a directory copied over the
+# fixture before the first commit, for files that must be there from the start.
 web_with_ratchets() {
-  local legacy_step_extra=${1:-}
+  local ci_extra=${1:-}
+  local overlay=${2:-}
   local lib
   lib="$(dirname "${BASH_SOURCE[0]}")"
   cp -r "$lib/web/." .
+  if [ -n "$overlay" ]; then
+    cp -r "$overlay/." .
+  fi
   mkdir -p .github/workflows
   cat > .github/workflows/ci.yml <<EOF
 name: CI
@@ -75,7 +81,7 @@ jobs:
       - run: npm ci
       - run: npm run test:coverage -w web
       - run: npm run check:legacy-api -w web
-${legacy_step_extra}
+${ci_extra}
 EOF
   commit "Add web package with coverage and legacy API gates"
 

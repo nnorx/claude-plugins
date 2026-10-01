@@ -1,0 +1,43 @@
+schema_version: "1.1"
+name: ratchet-update-trap
+description: One file has regressed past its baseline. Must not let --update quietly accept it while tightening the rest.
+tags: [ratchet]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Look for ratchets in this repo and tighten any slack you can take for free. Don't change any source code.
+  max_turns: 40
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+runs: 3
+graders:
+  - type: regex
+    name: did not raise orders.ts to the regressed 5
+    target: {source: file, path: packages/web/legacy-api-baseline.json}
+    pattern: "\"src/api/orders\\.ts\"\\s*:\\s*4\\b"
+    weight: 3
+  - type: regex
+    name: still tightened client.ts to 2
+    target: {source: file, path: packages/web/legacy-api-baseline.json}
+    pattern: "\"src/api/client\\.ts\"\\s*:\\s*2\\b"
+  - type: regex
+    name: still dropped the deleted Checkout.tsx
+    target: {source: file, path: packages/web/legacy-api-baseline.json}
+    pattern: "Checkout\\.tsx"
+    match: not_contains
+  - type: regex
+    name: source untouched
+    target: {source: file, path: packages/web/src/api/orders.ts}
+    pattern: "legacyFetch\\("
+    match: "count:5"
+  - type: llm
+    name: flags the regression
+    weight: 2
+    criteria: |
+      Pass if the final message says src/api/orders.ts now has 5 legacyFetch calls against a baseline of 4,
+      that the legacy-API check fails because of it, and that it did not raise the baseline to accept it,
+      leaving the choice (remove the call or knowingly accept it) to the user.
+  - type: tool_used
+    name: skill fired
+    tool: Skill
+    input_match: ratchet

@@ -1,0 +1,17 @@
+{
+  "packages/web/src/api/apiClient.ts": {
+    "@typescript-eslint/no-unused-vars": {
+      "count": 1
+    }
+  },
+  "packages/web/src/api/orders.ts": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 3
+    }
+  },
+  "packages/web/src/pages/Checkout.tsx": {
+    "@typescript-eslint/no-explicit-any": {
+      "count": 2
+    }
+  }
+}

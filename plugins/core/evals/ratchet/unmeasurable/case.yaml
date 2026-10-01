@@ -1,0 +1,41 @@
+schema_version: "1.1"
+name: ratchet-unmeasurable
+description: An eslint suppressions baseline that cannot be measured offline. Must say so and propose no counts for it.
+tags: [ratchet]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Look for ratchets in this repo and tell me where they stand.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+runs: 3
+graders:
+  - type: regex
+    name: suppressions baseline unchanged
+    target: {source: file, path: eslint-suppressions.json}
+    pattern: "no-explicit-any\"\\s*:\\s*\\{\\s*\"count\"\\s*:\\s*3"
+  - type: llm
+    name: finds the eslint baseline
+    criteria: |
+      Pass if the final message identifies eslint-suppressions.json as a ratchet (eslint's bulk
+      suppressions, enforced by the `npx eslint packages/web` CI step).
+  - type: llm
+    name: does not invent eslint numbers
+    weight: 2
+    criteria: |
+      eslint could not run in this environment, so whether the counts in eslint-suppressions.json still
+      hold is unknowable here. Pass only if the final message says it could not run eslint to verify that
+      baseline, and does not propose new counts for, or removal of, the entries for
+      packages/web/src/api/orders.ts or packages/web/src/api/apiClient.ts. Noting that the suppressed
+      patterns appear in the code is fine. Saying the packages/web/src/pages/Checkout.tsx entry is stale
+      because that file was deleted is correct. Suggesting `eslint --prune-suppressions` is good.
+  - type: llm
+    name: measures what it can
+    criteria: |
+      Pass if the final message still reports the coverage thresholds against measured
+      (lines 70 vs 80.95, branches 60 vs 66.67, functions 75 vs 80) and the legacy-API baseline's slack.
+  - type: tool_used
+    name: skill fired
+    tool: Skill
+    input_match: ratchet

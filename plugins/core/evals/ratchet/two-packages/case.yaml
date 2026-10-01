@@ -1,0 +1,39 @@
+schema_version: "1.1"
+name: ratchet-two-packages
+description: Ratchets in both packages of the monorepo. Must report each package's ratchets under that package, with numbers.
+tags: [ratchet]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Look for ratchets in this repo and tell me where they stand.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+runs: 3
+graders:
+  - type: regex
+    name: noqa budget unchanged
+    target: {source: file, path: packages/api/scripts/noqa-budget.sh}
+    pattern: "MAX_NOQA=16"
+  - type: llm
+    name: api noqa budget measured
+    weight: 2
+    criteria: |
+      Pass if the final message reports the noqa budget in packages/api (scripts/noqa-budget.sh) as
+      allowing 16 against 13 measured, so 3 of slack. The counts must be exactly 16 and 13.
+  - type: llm
+    name: grouped by package
+    criteria: |
+      Pass if the final message is organized by package, with packages/web's ratchets (coverage
+      thresholds and the legacy-API baseline) and packages/api's ratchet (the noqa budget) under separate
+      package headings or clearly separate per-package sections.
+  - type: llm
+    name: web numbers still right
+    criteria: |
+      Pass if the final message gives coverage thresholds against measured (lines 70 vs 80.95,
+      branches 60 vs 66.67, functions 75 vs 80) and says the legacy-API baseline allows 10 calls against
+      6 measured, or lists the per-file entries that add up to that.
+  - type: tool_used
+    name: skill fired
+    tool: Skill
+    input_match: ratchet

@@ -19,20 +19,30 @@ graders:
     name: baseline unchanged
     target: {source: file, path: packages/web/legacy-api-baseline.json}
     pattern: "\"src/pages/Checkout.tsx\": 2"
+  # One claim per judge. A single four-part rubric lost runs to the Haiku
+  # judge even when every part was right.
   - type: llm
-    name: reports both ratchets with measured slack
+    name: coverage recorded against measured
     criteria: |
-      The final message must cover both ratchets, with numbers. Fail if any item is missing or a number is wrong.
-      1. Coverage thresholds in the test:coverage script in packages/web/package.json, recorded against
-         measured for each metric: lines 70 vs 80.95, branches 60 vs 66.67, functions 75 vs 80
-         (rounding to one decimal is fine).
-      2. The legacy-API baseline in packages/web/legacy-api-baseline.json allows 10 legacyFetch calls and
-         the code has 6. It must say which entries have slack: src/api/client.ts (3 recorded, 2 now),
-         src/pages/Account.tsx (1 recorded, 0 now), src/pages/Checkout.tsx (file no longer exists).
-         It may say src/api/orders.ts is exact (4 and 4).
-      3. Says both are enforced by CI (both run as blocking steps in .github/workflows/ci.yml).
-      4. Proposes tightening and asks before changing anything, rather than saying it changed files.
-      Extra observations beyond these are fine and do not count against it.
+      Pass if the final message gives the coverage thresholds from the test:coverage script with the
+      measured value next to each: lines 70 vs 80.95, branches 60 vs 66.67, functions 75 vs 80.
+      Rounding to one decimal, or proposing rounded-down values, is fine.
+  - type: llm
+    name: baseline slack entry by entry
+    criteria: |
+      Pass if the final message shows that legacy-api-baseline.json has slack in these three entries:
+      src/api/client.ts (3 recorded, 2 now), src/pages/Account.tsx (1 recorded, 0 now), and
+      src/pages/Checkout.tsx (file deleted). A table is fine. Other correct details are fine.
+  - type: llm
+    name: says both are enforced
+    criteria: |
+      Pass if the final message says both checks run in CI as blocking steps, or equivalently that
+      neither is non-blocking. Noting that branch protection could not be checked is fine.
+  - type: llm
+    name: asks before changing
+    criteria: |
+      Pass if the final message proposes tightening and asks before doing it, and does not say it has
+      already changed any file.
   - type: tool_used
     name: skill fired
     tool: Skill
