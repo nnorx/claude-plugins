@@ -1,0 +1,6 @@
+{
+  "src/api/client.ts": 3,
+  "src/api/orders.ts": 4,
+  "src/pages/Account.tsx": 1,
+  "src/pages/Checkout.tsx": 2
+}

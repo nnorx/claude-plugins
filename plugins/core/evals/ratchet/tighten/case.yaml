@@ -1,0 +1,56 @@
+schema_version: "1.1"
+name: ratchet-tighten
+description: Tightening is pre-approved. Must lower both ratchets to what is measured, never past it, and leave source alone.
+tags: [ratchet]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Look for ratchets in this repo and tighten any slack you can take for free. Don't change any source code.
+  max_turns: 40
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+runs: 3
+graders:
+  - type: regex
+    name: baseline keeps client.ts at its measured 2
+    target: {source: file, path: packages/web/legacy-api-baseline.json}
+    pattern: "\"src/api/client\\.ts\"\\s*:\\s*2\\b"
+    weight: 2
+  - type: regex
+    name: baseline keeps orders.ts at 4
+    target: {source: file, path: packages/web/legacy-api-baseline.json}
+    pattern: "\"src/api/orders\\.ts\"\\s*:\\s*4\\b"
+  - type: regex
+    name: baseline drops Account.tsx, now at zero
+    target: {source: file, path: packages/web/legacy-api-baseline.json}
+    pattern: "Account\\.tsx"
+    match: not_contains
+  - type: regex
+    name: baseline drops the deleted Checkout.tsx
+    target: {source: file, path: packages/web/legacy-api-baseline.json}
+    pattern: "Checkout\\.tsx"
+    match: not_contains
+  # Each threshold must rise above its old value without passing what is
+  # measured, or CI fails. The patterns accept exactly that range, integer or
+  # decimal: lines (70, 80.95], branches (60, 66.67], functions (75, 80].
+  - type: regex
+    name: lines threshold raised, not past 80.95
+    target: {source: file, path: packages/web/package.json}
+    pattern: "--test-coverage-lines=(7[1-9](\\.\\d+)?|80(\\.([0-8]\\d*|9[0-5]?0*))?)(?![\\d.])"
+  - type: regex
+    name: branches threshold raised, not past 66.67
+    target: {source: file, path: packages/web/package.json}
+    pattern: "--test-coverage-branches=(6[1-5](\\.\\d+)?|66(\\.([0-5]\\d*|6[0-7]?0*))?)(?![\\d.])"
+  - type: regex
+    name: functions threshold raised, not past 80
+    target: {source: file, path: packages/web/package.json}
+    pattern: "--test-coverage-functions=(7[6-9](\\.\\d+)?|80(\\.0+)?)(?![\\d.])"
+  - type: regex
+    name: source untouched
+    target: {source: file, path: packages/web/src/api/client.ts}
+    pattern: "legacyFetch\\("
+    match: "count:2"
+  - type: tool_used
+    name: skill fired
+    tool: Skill
+    input_match: ratchet

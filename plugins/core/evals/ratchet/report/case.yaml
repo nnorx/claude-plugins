@@ -1,0 +1,39 @@
+schema_version: "1.1"
+name: ratchet-report
+description: Two enforced ratchets with slack. Must measure both, report recorded against measured, and change nothing.
+tags: [ratchet]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Look for ratchets in this repo and tell me where they stand.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+runs: 3
+graders:
+  - type: regex
+    name: thresholds unchanged
+    target: {source: file, path: packages/web/package.json}
+    pattern: "--test-coverage-lines=70 --test-coverage-branches=60 --test-coverage-functions=75"
+  - type: regex
+    name: baseline unchanged
+    target: {source: file, path: packages/web/legacy-api-baseline.json}
+    pattern: "\"src/pages/Checkout.tsx\": 2"
+  - type: llm
+    name: reports both ratchets with measured slack
+    criteria: |
+      The final message must cover both ratchets, with numbers. Fail if any item is missing or a number is wrong.
+      1. Coverage thresholds in the test:coverage script in packages/web/package.json, recorded against
+         measured for each metric: lines 70 vs 80.95, branches 60 vs 66.67, functions 75 vs 80
+         (rounding to one decimal is fine).
+      2. The legacy-API baseline in packages/web/legacy-api-baseline.json allows 10 legacyFetch calls and
+         the code has 6. It must say which entries have slack: src/api/client.ts (3 recorded, 2 now),
+         src/pages/Account.tsx (1 recorded, 0 now), src/pages/Checkout.tsx (file no longer exists).
+         It may say src/api/orders.ts is exact (4 and 4).
+      3. Says both are enforced by CI (both run as blocking steps in .github/workflows/ci.yml).
+      4. Proposes tightening and asks before changing anything, rather than saying it changed files.
+      Extra observations beyond these are fine and do not count against it.
+  - type: tool_used
+    name: skill fired
+    tool: Skill
+    input_match: ratchet

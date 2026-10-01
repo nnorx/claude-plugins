@@ -1,0 +1,10 @@
+{
+  "name": "web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test 'test/**/*.test.ts'",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include='src/**' --test-coverage-lines=70 --test-coverage-branches=60 --test-coverage-functions=75 'test/**/*.test.ts'",
+    "check:legacy-api": "node scripts/check-legacy-api.mjs"
+  }
+}

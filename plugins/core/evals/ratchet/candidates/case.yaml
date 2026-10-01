@@ -1,0 +1,44 @@
+schema_version: "1.1"
+name: ratchet-candidates
+description: No ratchets exist. Must say so, then propose candidates per package with measured counts, and create nothing.
+tags: [ratchet]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Look for ratchets in this repo and tell me where they stand.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+runs: 3
+graders:
+  # Top-level dotfiles are skipped: Claude Code writes its own .claude/ into
+  # the working directory during every run.
+  - type: regex
+    name: created no files
+    target: files
+    pattern: "^(?!\\.)\\S"
+    flags: m
+    match: not_contains
+  - type: regex
+    name: coverage still has no thresholds
+    target: {source: file, path: packages/web/package.json}
+    pattern: "test-coverage-(lines|branches|functions)"
+    match: not_contains
+  - type: llm
+    name: no ratchets, then measured candidates
+    weight: 2
+    criteria: |
+      Pass only if all of these hold:
+      1. Says the repo has no ratchets today: nothing records a number or baseline that CI holds to.
+      2. Proposes candidates grouped by package (packages/web and packages/api), with measured counts:
+         7 @ts-expect-error in packages/web and 13 `# noqa` in packages/api. Counts must be exact.
+      3. Mentions coverage thresholds as a candidate, since CI runs test:coverage with no thresholds.
+      4. Suggests mechanisms that fit the existing tools (eslint, node's test runner, ruff, tsc) rather
+         than only generic custom scripts.
+      5. Asks before setting anything up, and does not claim to have changed any file.
+      Noting that 2 of the noqa comments are bare (no rule code) is good but not required, as are other
+      extra observations.
+  - type: tool_used
+    name: skill fired
+    tool: Skill
+    input_match: ratchet

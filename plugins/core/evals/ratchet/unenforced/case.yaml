@@ -1,0 +1,38 @@
+schema_version: "1.1"
+name: ratchet-unenforced
+description: One ratchet runs in CI with continue-on-error. Must lead with that, since its numbers do not matter until it can fail.
+tags: [ratchet]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Look for ratchets in this repo and tell me where they stand.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+runs: 3
+graders:
+  - type: regex
+    name: CI unchanged
+    target: {source: file, path: .github/workflows/ci.yml}
+    pattern: "continue-on-error: true"
+  - type: regex
+    name: baseline unchanged
+    target: {source: file, path: packages/web/legacy-api-baseline.json}
+    pattern: "\"src/pages/Checkout.tsx\": 2"
+  - type: llm
+    name: flags the non-blocking check first
+    weight: 2
+    criteria: |
+      Pass only if all of these hold:
+      1. The final message says the legacy-API check (check:legacy-api) is not enforced, because its CI
+         step has continue-on-error: true, so a regression would not fail the build.
+      2. It treats this as the most important finding, stated before or above the slack numbers, or
+         explicitly called out as the priority.
+      3. It recommends making the step blocking (removing continue-on-error), and either notes that the
+         check passes today or checks that it does.
+      4. It does not present tightening the legacy-API baseline alone as fixing the problem.
+      5. It does not claim to have changed any file.
+  - type: tool_used
+    name: skill fired
+    tool: Skill
+    input_match: ratchet
