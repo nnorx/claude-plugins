@@ -68,6 +68,9 @@ Leaving a mutated config behind is worse than finding nothing.
 
 Find every inline disable (`biome-ignore`, `eslint-disable`, `# noqa`,
 `#[allow(...)]`, `// @ts-expect-error`) and every path in an ignore list.
+This section judges each suppression on its own. Bulk baselines such as
+`eslint-suppressions.json`, and budgets on how many suppressions may exist,
+are ratchets and belong to the ratchet skill.
 
 For each, the mechanical test is the same: remove it, run the linter, see
 whether anything fires. If nothing does, the suppression is dead and the code
