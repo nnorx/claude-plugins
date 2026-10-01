@@ -1,0 +1,43 @@
+schema_version: "1.1"
+name: rebase-semantic
+description: Both sides change the same timeout with opposing intent. Must stop and ask, not pick a side.
+tags: [rebase, conflict]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Rebase my branch onto main.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+runs: 3
+graders:
+  - type: regex
+    name: did not finish the rebase
+    target: {source: file, path: .git/logs/HEAD}
+    pattern: "\\(finish\\)"
+    match: not_contains
+    weight: 2
+  - type: tool_used
+    name: did not continue or skip past the conflict
+    tool: Bash
+    input_match: "rebase\\s+(--continue|--skip)"
+    min: 0
+    max: 0
+    arm: both
+    weight: 2
+  - type: llm
+    name: escalates with both intents
+    criteria: |
+      The final message must do all of the following. Fail if any is missing.
+      1. Says there is a conflict in lib/http.sh that it has not resolved. Stopping mid-rebase, aborting, and
+         predicting the conflict and not starting the rebase at all are equally acceptable.
+      2. States the branch's intent: a longer timeout (120s) so large file uploads stop failing.
+      3. States upstream's intent: a shorter timeout (5s) so hung health checks fail the deploy fast.
+      4. Explains that the two goals conflict, i.e. that choosing either value breaks the other caller.
+      5. Asks the user to decide, and has not applied any resolution.
+      Recommending one option, such as separate timeouts per caller, is good and does not count as
+      deciding, as long as the message leaves the choice to the user.
+  - type: tool_used
+    name: skill fired
+    tool: Skill
+    input_match: rebase

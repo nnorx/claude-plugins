@@ -1,0 +1,39 @@
+schema_version: "1.1"
+name: rebase-generated
+description: A generated file conflicts. Must regenerate it with ./gen.sh, not hand-merge it.
+tags: [rebase, conflict]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Rebase my branch onto main.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+runs: 3
+# Hand-merging leaves checksum be1f0d4c… or d1ae415e…. Only rerunning
+# ./gen.sh over the union of both sides' routes produces 60aa4351….
+graders:
+  - type: regex
+    name: generated file regenerated
+    target: {source: file, path: generated/routes.txt}
+    pattern: "# checksum: 60aa43518fd2d4c5"
+    weight: 2
+  - type: regex
+    name: no conflict markers left
+    target: {source: file, path: generated/routes.txt}
+    pattern: "^(<{7}|={7}|>{7}|\\|{7})"
+    flags: m
+    match: not_contains
+  - type: regex
+    name: rebased onto fetched upstream
+    target: {source: file, path: .git/logs/HEAD}
+    pattern: "^[0-9a-f]{40} c3ded4754539c98d57f90b50b626fcaf5702d07e .*\\(start\\)"
+    flags: m
+  - type: regex
+    name: rebase finished
+    target: {source: file, path: .git/logs/HEAD}
+    pattern: "\\(finish\\): returning to refs/heads/feature"
+  - type: tool_used
+    name: skill fired
+    tool: Skill
+    input_match: rebase
