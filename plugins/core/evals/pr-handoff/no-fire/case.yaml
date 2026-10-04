@@ -1,0 +1,49 @@
+schema_version: "1.1"
+name: pr-handoff-no-fire
+description: A request to commit, not to open a PR. Must commit, and write no handoff and push nothing.
+tags: [pr-handoff, negative]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Commit my README change with a good message.
+  max_turns: 15
+  timeout_seconds: 300
+  allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+runs: 3
+# The scaffold's commits are dated 2026-01-01 (1767225600); the agent's is not.
+graders:
+  - type: regex
+    name: committed the change
+    target: {source: file, path: .git/logs/HEAD}
+    pattern: "> (?!1767225600 )\\d+ [+-]\\d{4}\\tcommit: "
+    weight: 2
+  # A grader on a file that does not exist throws, so absence is graded by
+  # what was written rather than by the file.
+  - type: tool_used
+    name: no handoff written
+    tool: Write
+    input_match: "pr-handoff"
+    min: 0
+    max: 0
+    arm: both
+  - type: tool_used
+    name: no handoff written from the shell either
+    tool: Bash
+    input_match: "pr-handoff/"
+    min: 0
+    max: 0
+    arm: both
+  - type: tool_used
+    name: did not push
+    tool: Bash
+    input_match: "git\\s+push|gh\\s+pr"
+    min: 0
+    max: 0
+    arm: both
+  - type: tool_used
+    name: skill did not fire
+    tool: Skill
+    input_match: pr-handoff
+    min: 0
+    max: 0
+    arm: both

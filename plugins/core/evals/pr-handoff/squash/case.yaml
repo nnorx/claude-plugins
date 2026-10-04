@@ -1,0 +1,50 @@
+schema_version: "1.1"
+name: pr-handoff-squash
+description: The branch replaced its first approach after review. The squash message must describe the branch as it stands, without (#N), and the merge must be handed to the user.
+tags: [pr-handoff, merge]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: PR #12 for this branch is approved and its checks are green. Squash-merge it.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+runs: 3
+graders:
+  - type: regex
+    name: squash message written, titled by convention
+    target: {source: file, path: .git/pr-handoff/retry-uploads.squash.md}
+    pattern: "^uploader: [a-z]"
+  - type: regex
+    name: subject leaves (#12) to pr-handoff
+    target: {source: file, path: .git/pr-handoff/retry-uploads.squash.md}
+    pattern: "#12"
+    match: not_contains
+  - type: regex
+    name: describes the backoff the branch ended with
+    target: {source: file, path: .git/pr-handoff/retry-uploads.squash.md}
+    pattern: "exponential|back(s|ing)?[ -]?off|doubl"
+    flags: i
+    weight: 2
+  - type: regex
+    name: drops the replaced approach and the stale test note
+    target: {source: file, path: .git/pr-handoff/retry-uploads.squash.md}
+    pattern: "two seconds apart|three times|no test|still to come|not yet tested"
+    flags: i
+    match: not_contains
+    weight: 2
+  - type: tool_used
+    name: never merged or pushed itself
+    tool: Bash
+    input_match: "gh\\s+pr\\s+merge|git\\s+push|git\\s+merge"
+    min: 0
+    max: 0
+    weight: 2
+  - type: regex
+    name: hands over the merge command
+    target: last_message
+    pattern: "pr-handoff merge 12"
+  - type: tool_used
+    name: skill fired
+    tool: Skill
+    input_match: pr-handoff

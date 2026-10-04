@@ -26,6 +26,11 @@ claude plugin eval . --scaffold --allow-tools Bash Edit Write --judge-model sonn
   three votes to none, even against one-line rubrics.
 - **The sandbox needs bubblewrap and socat** on Linux, on the profile's PATH.
   A `nix shell` does not reach the agents, which run through the login shell.
+- **Run it from a terminal, not from a sandboxed Claude Code session.** The
+  agents' bubblewrap cannot start inside another one, and fails every shell
+  command with `bwrap: Can't mkdir parents for /run/secrets.d/1`. The run
+  still completes and scores, so "Bash called 0x" across every case is the
+  sign. `--keep-temp` keeps the traces that show it.
 - **No network.** Fixtures can use node, jq, rg and git, and nothing that has
   to be installed.
 - **Hooks in the repo under test do not run.** Read outcomes from files the
@@ -35,6 +40,9 @@ claude plugin eval . --scaffold --allow-tools Bash Edit Write --judge-model sonn
   the `files` target skip them.
 - **"Did not do X" graders pass when the agent does nothing.** Pair each with
   a grader that needs real output.
+- **A grader on a file that does not exist throws,** and the throw scores as
+  a failure, even with `match: not_contains`. Grade "did not write X" with
+  `tool_used` on the Write and Bash calls that would have written it.
 - **Read the traces before trusting a score.** Most early failures here were
   fixture or grader bugs. When an agent says the fixture is wrong, check
   whether it is.
