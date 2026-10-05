@@ -26,11 +26,14 @@ claude plugin eval . --scaffold --allow-tools Bash Edit Write --judge-model sonn
   three votes to none, even against one-line rubrics.
 - **The sandbox needs bubblewrap and socat** on Linux, on the profile's PATH.
   A `nix shell` does not reach the agents, which run through the login shell.
-- **Run it from a terminal, not from a sandboxed Claude Code session.** The
-  agents' bubblewrap cannot start inside another one, and fails every shell
-  command with `bwrap: Can't mkdir parents for /run/secrets.d/1`. The run
-  still completes and scores, so "Bash called 0x" across every case is the
-  sign. `--keep-temp` keeps the traces that show it.
+- **Not on a NixOS host with sops-nix secrets, such as forge.** The eval
+  sandbox hides a built-in list of system credential paths, `/run/secrets`
+  among them. sops-nix makes that a symlink into the root-only
+  `/run/secrets.d`, and bubblewrap cannot mount over it, so every shell
+  command fails with `bwrap: Can't mkdir parents for /run/secrets.d/<n>`.
+  Run the evals on WSL, which has no `/run/secrets`. The run still completes
+  and scores, so "Bash called 0x" or that error in every case is the sign;
+  `--keep-temp` keeps the traces that show it.
 - **No network.** Fixtures can use node, jq, rg and git, and nothing that has
   to be installed.
 - **Hooks in the repo under test do not run.** Read outcomes from files the
