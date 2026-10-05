@@ -5,7 +5,9 @@ tags: [pr-handoff, merge]
 context:
   scaffold_script: scaffold.sh
 execution:
-  prompt: PR #12 for this branch is approved and its checks are green. Squash-merge it.
+  # Quoted: unquoted, YAML reads " #12" as the start of a comment and the
+  # prompt is just "PR".
+  prompt: "PR #12 for this branch is approved and its checks are green. Squash-merge it."
   max_turns: 30
   timeout_seconds: 600
   allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
