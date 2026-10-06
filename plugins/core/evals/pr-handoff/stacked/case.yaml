@@ -1,0 +1,34 @@
+schema_version: "1.1"
+name: pr-handoff-stacked
+description: The branch is stacked on an unmerged branch. The hand-over must target that branch with --base, and the handoff must cover only this branch's commit.
+tags: [pr-handoff, stacked]
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: Open a PR for this branch. It builds on add-parser, which hasn't been merged yet.
+  max_turns: 30
+  timeout_seconds: 600
+  allowed_tools: [Bash, Read, Edit, Write, Glob, Grep, Skill]
+runs: 3
+graders:
+  - type: regex
+    name: handoff written
+    target: {source: file, path: .git/pr-handoff/add-column-count.md}
+    pattern: "(?:column|count)"
+    flags: i
+  - type: regex
+    name: hands over with --base add-parser
+    target: last_message
+    pattern: "pr-handoff\\s+--base[ =]add-parser"
+    weight: 2
+  - type: tool_used
+    name: never pushed, opened a PR or authenticated
+    tool: Bash
+    input_match: "git\\s+push|gh\\s+pr\\s+create|gh\\s+auth\\s+login"
+    min: 0
+    max: 0
+    weight: 2
+  - type: tool_used
+    name: skill fired
+    tool: Skill
+    input_match: pr-handoff

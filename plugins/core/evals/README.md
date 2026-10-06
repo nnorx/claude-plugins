@@ -26,6 +26,14 @@ claude plugin eval . --scaffold --allow-tools Bash Edit Write --judge-model sonn
   three votes to none, even against one-line rubrics.
 - **The sandbox needs bubblewrap and socat** on Linux, on the profile's PATH.
   A `nix shell` does not reach the agents, which run through the login shell.
+- **Not on a NixOS host with sops-nix secrets, such as forge.** The eval
+  sandbox hides a built-in list of system credential paths, `/run/secrets`
+  among them. sops-nix makes that a symlink into the root-only
+  `/run/secrets.d`, and bubblewrap cannot mount over it, so every shell
+  command fails with `bwrap: Can't mkdir parents for /run/secrets.d/<n>`.
+  Run the evals on WSL, which has no `/run/secrets`. The run still completes
+  and scores, so "Bash called 0x" or that error in every case is the sign;
+  `--keep-temp` keeps the traces that show it.
 - **No network.** Fixtures can use node, jq, rg and git, and nothing that has
   to be installed.
 - **Hooks in the repo under test do not run.** Read outcomes from files the
@@ -35,6 +43,9 @@ claude plugin eval . --scaffold --allow-tools Bash Edit Write --judge-model sonn
   the `files` target skip them.
 - **"Did not do X" graders pass when the agent does nothing.** Pair each with
   a grader that needs real output.
+- **A grader on a file that does not exist throws,** and the throw scores as
+  a failure, even with `match: not_contains`. Grade "did not write X" with
+  `tool_used` on the Write and Bash calls that would have written it.
 - **Read the traces before trusting a score.** Most early failures here were
   fixture or grader bugs. When an agent says the fixture is wrong, check
   whether it is.
