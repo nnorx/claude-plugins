@@ -26,6 +26,21 @@ claude plugin eval . --scaffold --allow-tools Bash Edit Write --judge-model sonn
   three votes to none, even against one-line rubrics.
 - **The sandbox needs bubblewrap and socat** on Linux, on the profile's PATH.
   A `nix shell` does not reach the agents, which run through the login shell.
+- **Bash evals cannot run on a NixOS host with sops-nix.** The sandbox's
+  built-in credential deny list includes `/run/secrets`, which sops-nix makes
+  a symlink into root-only `/run/secrets.d`. Bubblewrap cannot mount over a
+  symlink, so every command fails. There is no known workaround; run the
+  evals on another machine.
+- **On WSL, symlinks in `~/.docker` block Bash evals.** Docker Desktop's WSL
+  integration leaves links such as `contexts` and `features.json` pointing
+  into `/mnt/c/...`, and the harness refuses to run. Setting `DOCKER_CONFIG`
+  elsewhere does not help. Moving the links aside, for example to
+  `~/docker-links-backup`, and checking `docker ps` afterwards should fix it,
+  but this is untested.
+- **The VS Code extension can leave two `claude` binaries.** When `claude`
+  comes from the extension rather than PATH, two installed versions make an
+  `anthropic.claude-code-*` glob match both. Pick the newest with
+  `ls -d ~/.vscode*/extensions/anthropic.claude-code-* | sort -V | tail -1`.
 - **No network.** Fixtures can use node, jq, rg and git, and nothing that has
   to be installed.
 - **Hooks in the repo under test do not run.** Read outcomes from files the
